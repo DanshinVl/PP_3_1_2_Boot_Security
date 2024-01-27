@@ -15,10 +15,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Контроллер для административных задач пользователя.
- * Доступен только для ROLE_ADMIN
- */
 @Controller
 public class UserAdminController {
 
@@ -27,11 +23,6 @@ public class UserAdminController {
     public UserAdminController(UserService userService) {
         this.userService = userService;
     }
-
-    /**
-     * Отображает пользователей с их ролями.
-     * @return adminPanel
-     */
     @GetMapping(value = "/admin")
     public String printUsers(Model model) {
         Map<User, String> usersWithRoles = userService
@@ -49,11 +40,6 @@ public class UserAdminController {
 
         return "admin";
     }
-
-    /**
-     * Добавляет нового пользователя.
-     * @return перенаправление на adminPanel
-     */
     @PostMapping(value = "/admin/add")
     public String addUser(@RequestParam String username,
                           @RequestParam String email,
@@ -65,11 +51,6 @@ public class UserAdminController {
 
         return "redirect:/admin";
     }
-
-    /**
-     * Обновляет существующего пользователя.
-     * @return перенаправление на adminPanel
-     */
     @PostMapping(value = "/admin/update")
     public String updateUser(@RequestParam Long id,
                              @RequestParam String username,
@@ -86,11 +67,6 @@ public class UserAdminController {
 
         return "redirect:/admin";
     }
-
-    /**
-     * Удаляет пользователя.
-     * @return перенаправление на adminPanel
-     */
     @PostMapping(value = "/admin/delete")
     public String deleteUser(@RequestParam Long id) {
         userService.delete(id);

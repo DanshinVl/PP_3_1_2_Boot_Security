@@ -9,10 +9,6 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.security.Principal;
 
-/**
- * Контроллер для задач, связанных с пользователями.
- * Доступен для ролей ROLE_USER и ROLE_ADMIN
- */
 @Controller
 public class UserController {
 
@@ -21,13 +17,6 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    /**
-     * Отображает страницу пользователя с его данными.
-     * @param model MVC модель
-     * @param principal абстракция пользователя
-     * @return userPage
-     */
     @GetMapping("/user")
     public String getUserPage(Model model, Principal principal) {
         String username = principal.getName();
@@ -35,14 +24,6 @@ public class UserController {
         model.addAttribute("user", user);
         return "user";
     }
-
-    /**
-     * Отображает страницу пользователя по идентификатору.
-     * Доступен только для ROLE_ADMIN
-     * @param id идентификатор пользователя
-     * @param model MVC модель
-     * @return userPage
-     */
     @GetMapping("/user/{id}")
     public String getUserPageById(@PathVariable Long id, Model model) {
         User user = userService.findById(id);
