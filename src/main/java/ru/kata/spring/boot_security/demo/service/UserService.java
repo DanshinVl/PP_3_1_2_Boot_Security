@@ -3,21 +3,21 @@ package ru.kata.spring.boot_security.demo.service;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
-    void add(User user);
-
-    void update(User user);
 
     void delete(Long id);
 
-    List<User> getAllUsers();
+    Map<User, String> getAllUsersWithRoles();
 
     String getUserRoles(User user);
 
-    void addRoleToUser(String roleName, User user);
+    void addUserWithRoles(List<String> roles, User user);
 
-    User findByUsername(String username);
+    void updateUserWithRoles(User user, List<String> roles);
 
     User findById(Long id);
+
+    User findByEmail(String email);
 }

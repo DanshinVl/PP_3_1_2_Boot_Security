@@ -30,10 +30,10 @@ public class DatabaseLoader implements CommandLineRunner {
         this.roleRepository.save(adminRole);
         this.roleRepository.save(userRole);
 
-        User admin = new User("admin", "admin@gmail.ru", "admin");
+        User admin = new User("admin", "admin", 27, "admin@gmail.ru", "admin");
         admin.setRoles(new HashSet<>(List.of(adminRole, userRole)));
 
-        User user = new User("user", "user@gmail.ru", "user");
+        User user = new User("user", "user", 27,  "user@gmail.ru", "user");
         user.setRoles(new HashSet<>(List.of(userRole)));
 
         this.userRepository.save(admin);
