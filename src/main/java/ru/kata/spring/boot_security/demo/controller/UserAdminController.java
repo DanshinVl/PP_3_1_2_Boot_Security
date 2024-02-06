@@ -48,7 +48,7 @@ public class UserAdminController {
 
     @PostMapping(value = "/admin/update")
     public String updateUser(@ModelAttribute UserDto userDto,
-                             @RequestParam List<String> role) {
+                             @RequestParam(required = false) List<String> role) {
         User user = userMapper.toModel(userDto);
         userService.updateUserWithRoles(user, role);
 
