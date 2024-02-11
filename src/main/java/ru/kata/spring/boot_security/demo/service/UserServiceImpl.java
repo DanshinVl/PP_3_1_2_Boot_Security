@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,14 +8,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.kata.spring.boot_security.demo.dto.RoleDto;
+import ru.kata.spring.boot_security.demo.dto.UserDto;
+import ru.kata.spring.boot_security.demo.dto.UserMapper;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 import ru.kata.spring.boot_security.demo.model.Role;
 
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,12 +25,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
 
-    private final RoleService roleService;
+    private final RoleRepository roleRepository;
+
+    private final UserMapper userMapper;
 
     public UserServiceImpl(UserRepository userRepository,
-                          RoleService roleService) {
+                            RoleRepository roleRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
-        this.roleService = roleService;
+        this.roleRepository = roleRepository;
+        this.userMapper = userMapper;
     }
 
     @Transactional
@@ -41,14 +44,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Transactional(readOnly = true)
     @Override
-    public Map<User, String> getAllUsersWithRoles() {
+    public Map<User, List<String>> getAllUsersWithRoles() {
         return userRepository
                 .findAll(Sort.by("id"))
                 .stream()
                 .sorted(Comparator.comparing(User::getId))
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        this::getUserRoles,
+                        user -> user.getRoles().stream()
+                                .map(Role::getName)
+                                .map(roleName -> roleName.replace("ROLE_", ""))
+                                .sorted()
+                                .toList(),
                         (oldValue, newValue) -> oldValue,
                         LinkedHashMap::new
                 ));
@@ -74,52 +81,39 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 User(user.getUsername(), user.getPassword(), authorities);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public String getUserRoles(User user) {
-        return user.getRoles().stream()
-                .map(Role::getName)
-                .map(roleName -> roleName.replace("ROLE_", ""))
-                .sorted()
-                .collect(Collectors.joining(" "));
-    }
-
     @Transactional
     @Override
-    public void addUserWithRoles(List<String> roles, User user) {
-        for (String roleName : roles) {
-            Role role = roleService.findByName(roleName);
-            user.getRoles().add(role);
-        }
+    public void addUserWithRoles(UserDto userDto) {
+        User user = userMapper.toModel(userDto);
+
+        setRolesToUser(user, userDto.getRoles());
+
         userRepository.save(user);
     }
 
+    private void setRolesToUser(User user, Set<RoleDto> roleDtoSet) {
+        Set<Role> roles = roleDtoSet.stream()
+                .map(roleDto -> roleRepository.findByName("ROLE_" + roleDto.getName()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        user.setRoles(roles);
+    }
+
     @Transactional
     @Override
-    public void updateUserWithRoles(User user, List<String> roles) {
-        User existingUser = userRepository.findByEmail(user.getEmail());
+    public void updateUserWithRoles(UserDto userDto) {
+        User existingUser = userRepository.findByEmail(userDto.getEmail());
 
         if (existingUser != null) {
-            existingUser.setFirstname(user.getFirstname());
-            existingUser.setLastname(user.getLastname());
-            existingUser.setAge(user.getAge());
-            existingUser.setEmail(user.getEmail());
-            existingUser.setPassword(user.getPassword());
-
-            existingUser.getRoles().clear();
-
-            for (String roleName : roles) {
-                Role role = roleService.findByName(roleName);
-                existingUser.getRoles().add(role);
-            }
+            existingUser.setFirstname(userDto.getFirstname());
+            existingUser.setLastname(userDto.getLastname());
+            existingUser.setAge(userDto.getAge());
+            existingUser.setEmail(userDto.getEmail());
+            existingUser.setPassword(userDto.getPassword());
+            setRolesToUser(existingUser, userDto.getRoles());
 
             userRepository.save(existingUser);
         }
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public User findById(Long id) {
-        return userRepository.findById(id).orElse(null);
     }
 }

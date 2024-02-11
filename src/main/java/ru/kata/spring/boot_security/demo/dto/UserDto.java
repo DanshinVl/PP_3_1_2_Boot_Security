@@ -1,18 +1,25 @@
 package ru.kata.spring.boot_security.demo.dto;
 
+import java.util.Set;
+
 public class UserDto {
+    private Long id;
     private String firstname;
     private String lastname;
     private Integer age;
     private String email;
     private String password;
 
-    public UserDto(String firstname, String lastname, Integer age, String email, String password) {
+    private Set <RoleDto> roles;
+
+    public UserDto(Long id, String firstname, String lastname, Integer age, String email, String password, Set<RoleDto> roles) {
+        this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
         this.age = age;
         this.email = email;
         this.password = password;
+        this.roles = roles;
     }
 
     public UserDto() {
@@ -56,5 +63,21 @@ public class UserDto {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Set<RoleDto> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleDto> roles) {
+        this.roles = roles;
     }
 }
